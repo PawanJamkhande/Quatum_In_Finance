@@ -1,0 +1,5 @@
+{
+  "type": "budget",
+  "budget": 3,
+  "allow_fractional": false
+}
