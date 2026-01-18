@@ -1,29 +1,41 @@
 import time
+
+# ---------- Imports ----------
 from preprocessing.data_loader import load_data
 from preprocessing.normalize import normalize_data
 from preprocessing.feature_extractor import extract_features
+from preprocessing.asset_generator import generate_asset_returns
+from preprocessing.covariance_generator import generate_covariance
 
 from encoding.encoding_selector import select_encoding
 from workflows.workflow_selector import select_workflow
 from workflows.classical_sa import classical_solver
-from workflows.qaoa_quantum import qaoa_quantum_solver
 from workflows.hybrid import hybrid_solver
+from workflows.qaoa_quantum import qaoa_quantum_solver
 
-from evaluation.metrics import evaluate
-from evaluation.logger import log_result
+from evaluation.baseline_runner import run_baseline
+from evaluation.comparator import compare_results
 
-# Load & preprocess
-returns, cov, constraints = load_data()
-returns, cov = normalize_data(returns, cov)
+# ---------- Data Loading ----------
+returns, constraints = load_data()
+returns, _ = normalize_data(returns, returns)
+
+num_assets = len(returns)
+asset_returns = generate_asset_returns(num_assets)
+cov = generate_covariance(asset_returns)
+
 features = extract_features(returns, cov, constraints)
 
-# Encoding selection
+# ---------- Encoding Selection ----------
 encoding_name, Q = select_encoding(features, returns, cov, constraints)
 
-# Workflow selection
+# ---------- BASELINE RUN ----------
+baseline_metrics = run_baseline(Q)
+
+# ---------- WORKFLOW SELECTION ----------
 workflow = select_workflow(features)
 
-# Execute solver
+# ---------- AUTOMATED RUN ----------
 start = time.time()
 
 if workflow == "CLASSICAL":
@@ -33,17 +45,40 @@ elif workflow == "QAOA":
 else:
     x, energy = hybrid_solver(Q)
 
-# Evaluation
-metrics = evaluate(start, energy)
+auto_runtime = time.time() - start
 
-# Logging
-result = {
-    "encoding": encoding_name,
-    "workflow": workflow,
-    "energy": float(metrics["energy"]),
-    "runtime": metrics["runtime"]
+scaled_energy = energy / len(Q)
+auto_solution_quality = 1 / (1 + abs(scaled_energy))
+
+
+
+automated_metrics = {
+    "energy": energy,
+    "runtime": auto_runtime,
+    "solution_quality": auto_solution_quality
 }
 
-log_result(result)
+# ---------- COMPARISON ----------
+improvement = compare_results(baseline_metrics, automated_metrics)
 
-print("Done:", result)
+# ---------- FINAL REPORT GENERATION ----------
+from evaluation.report_generator import generate_json_report
+from evaluation.csv_generator import generate_csv_summary
+
+json_report = generate_json_report(
+    encoding=encoding_name,
+    solver=workflow,
+    automated=automated_metrics,
+    baseline=baseline_metrics,
+    improvement=improvement
+)
+
+generate_csv_summary(
+    baseline_metrics,
+    automated_metrics,
+    improvement
+)
+
+print("Final JSON Report Generated:")
+print(json_report)
+print("CSV Summary Table Generated")
