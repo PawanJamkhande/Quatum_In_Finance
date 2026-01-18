@@ -91,7 +91,7 @@ autoqubo/
 ├── requirements.txt
 └── README.md
 
-Installation & Setup (Run on Any Device)
+(Installation & Setup (Run on Any Device))
 ###_Prerequisites_
 
 Python 3.9 or above
@@ -101,7 +101,7 @@ pip installed
 Internet access (for installing dependencies)
 
 Step 1: Clone the Repository
-git clone <your-repository-url>
+git clone <https://github.com/PawanJamkhande/Quatum_In_Finance>
 cd autoqubo
 
 Step 2: Create Virtual Environment (Recommended)
@@ -119,12 +119,12 @@ source venv/bin/activate
 
 venv\Scripts\activate
 
-🔹 Step 3: Install Dependencies
+Step 3: Install Dependencies
 pip install -r requirements.txt
 
 ###_Dependencies Used_
 
-Add this to requirements.txt:
+requirements.txt:
 
 numpy
 qiskit
