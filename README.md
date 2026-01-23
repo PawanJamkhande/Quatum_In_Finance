@@ -57,6 +57,7 @@ Performance metrics computation
 JSON and CSV report generation
 
 ###_Project Structure_
+
 autoqubo/
 │
 ├── data/
